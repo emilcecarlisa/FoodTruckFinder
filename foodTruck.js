@@ -1,9 +1,9 @@
 const axios = require('axios'); // import not supported by NodeJS by default
-var readline = require('readline-sync');
-
+const readline = require('readline-sync');
+const uniq = require('underscore');
 /**
  * Returns object containing food truck details from API
- * @return {Object} with array of objects
+ * @return {Object} with array of objects.
  **/
 function fetchData() {
   return axios.get('http://data.sfgov.org/resource/bbb8-hzi6.json')
@@ -12,29 +12,34 @@ function fetchData() {
   }).catch(err => { console.log(`Problem with data fetch. See error: ${err}`) });
 }
 /**
- * Takes current time 
+ * Logs current time 
  * @return {Date Object} 
  **/
 function getTime() {
   let now = new Date()
   let time = now.toLocaleTimeString();
-  // console.log('DATE', time)
   return time
 }
 /**
  * Function manipulates API data into object containing currently open food trucks 
- * @return {Object} 
+ * @return {Array} of strings containing details of open food trucks.
  **/
 async function openFoodTrucks() {
   const foodData = await fetchData();
-  const currentTime = getTime();
-  let foodList = [];
+//   const currentTime = getTime();
+const date = new Date('November 15, 2018 :21:30 GMT+00:00');  
+const currentTime = date.toLocaleTimeString();
+console.log(currentTime)
+  let truckList = [];
   for (let value of Object.values(foodData)) {
+    //   console.log('in here!')
     if (currentTime < value["end24"] && currentTime > value["start24"]) {
-      foodList.push(`${value["applicant"]} (${value["location"]}): ${value["starttime"]}-${value["endtime"]}`);
+      truckList.push(`${value["applicant"]} (${value["location"]}): ${value["starttime"]}-${value["endtime"]}`);
     };
   }
-  const sortedFoodList = foodList.sort();
+  const sortedFoodList = truckList.sort();
+  const uniqList = uniq(sortedFoodList,true);
+  console.log(uniqList)
   return sortedFoodList;
 }
 /**
@@ -50,6 +55,8 @@ async function showFoodTrucks() {
   const openFood = await openFoodTrucks();
   const pageLimit = 10; 
   let currentPage = 1;
+
+  if (openFood.length == 0 || openFood == []) {return console.log("Nothing's open!")}
   
   for (let i = 0; i < openFood.length; i += 10) {
     const truckGroup = paginate(openFood,pageLimit,currentPage);
@@ -64,10 +71,10 @@ async function showFoodTrucks() {
         ++currentPage;
         console.log('page number', currentPage);
       } else if (answer == 'n') {
-        console.log("Bon apetit!")
+        console.log("Bon appetit!")
         break
       } else {
-        console.log("Sorry, I didn't understand")
+        console.log("Please enter 'y' or 'n'.")
       }
     }
   }
