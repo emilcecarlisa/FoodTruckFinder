@@ -1,6 +1,6 @@
-const axios = require('axios'); // import not supported by NodeJS by default
+const axios = require('axios'); 
 const readline = require('readline-sync');
-const uniq = require('underscore');
+
 /**
  * Returns object containing food truck details from API
  * @return {Object} with array of objects.
@@ -8,17 +8,17 @@ const uniq = require('underscore');
 function fetchData() {
   return axios.get('http://data.sfgov.org/resource/bbb8-hzi6.json')
   .then(response => {
-    return response.data
+    return response.data;
   }).catch(err => { console.log(`Problem with data fetch. See error: ${err}`) });
 }
 /**
- * Logs current time 
+ * Gets current time 
  * @return {Date Object} 
  **/
 function getTime() {
-  let now = new Date()
-  let time = now.toLocaleTimeString();
-  return time
+  const now = new Date();
+  const time = now.toLocaleTimeString();
+  return time;
 }
 /**
  * Function manipulates API data into object containing currently open food trucks 
@@ -26,24 +26,20 @@ function getTime() {
  **/
 async function openFoodTrucks() {
   const foodData = await fetchData();
-//   const currentTime = getTime();
-const date = new Date('November 15, 2018 :21:30 GMT+00:00');  
-const currentTime = date.toLocaleTimeString();
-console.log(currentTime)
+  const currentTime = getTime();
+
   let truckList = [];
   for (let value of Object.values(foodData)) {
-    //   console.log('in here!')
     if (currentTime < value["end24"] && currentTime > value["start24"]) {
-      truckList.push(`${value["applicant"]} (${value["location"]}): ${value["starttime"]}-${value["endtime"]}`);
+      truckList.push(`${value["applicant"]} (${value["location"]})`);
     };
   }
   const sortedFoodList = truckList.sort();
-  const uniqList = uniq(sortedFoodList,true);
-  console.log(uniqList)
-  return sortedFoodList;
+  const uniqList = [...new Set(sortedFoodList)];
+  return uniqList;
 }
 /**
- * Function paginates an input array to the requested size and starting page  
+ * Function paginates an input array to the requested size and starting page.
  * @return {Array} 
  **/
 function paginate(array, pageSize, pageNumber) {
@@ -52,24 +48,26 @@ function paginate(array, pageSize, pageNumber) {
 }
 
 async function showFoodTrucks() {
-  const openFood = await openFoodTrucks();
+  const openFoodList = await openFoodTrucks();
   const pageLimit = 10; 
   let currentPage = 1;
-
-  if (openFood.length == 0 || openFood == []) {return console.log("Nothing's open!")}
   
-  for (let i = 0; i < openFood.length; i += 10) {
-    const truckGroup = paginate(openFood,pageLimit,currentPage);
-    
-    if (truckGroup) {
+  if (openFoodList.length == 0 || openFoodList == []) {return console.log("Nothing's open!")};
+  console.log('Open Food Trucks: ',openFoodList.length);
+
+  for (let grouping = 0; grouping < openFoodList.length; grouping += pageLimit) {
+    const truckGroup = paginate(openFoodList,pageLimit,currentPage);
+      
+    if (truckGroup) { 
+      console.log('Page Number', currentPage);
+
       for (let company of truckGroup) {
-        console.log(company);
+        console.log("\n", company);
       }
-      var answer = readline.question("See more food trucks? (y/n):");
+      var answer = readline.question("\nSee more food trucks? (y/n):");
 
       if (answer == 'y') { 
         ++currentPage;
-        console.log('page number', currentPage);
       } else if (answer == 'n') {
         console.log("Bon appetit!")
         break
@@ -79,4 +77,5 @@ async function showFoodTrucks() {
     }
   }
 }
-showFoodTrucks();
+
+showFoodTrucks(); // runs program
