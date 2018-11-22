@@ -1,12 +1,19 @@
 const axios = require('axios'); 
 const readline = require('readline-sync');
 
+let dayOfWeek;
+let time;
 /**
  * Returns object containing food truck details from API
  * @return {Object} with array of objects.
  **/
 function fetchData() {
-  return axios.get('http://data.sfgov.org/resource/bbb8-hzi6.json')
+  const url = 'http://data.sfgov.org/resource/bbb8-hzi6.json';
+  return axios.get(url, {
+    params: {
+      $select: 'applicant, location, dayofweekstr, start24, end24'
+    }
+  })
   .then(response => {
     return response.data;
   }).catch(err => { console.log(`Problem with data fetch. See error: ${err}`) });
@@ -16,8 +23,19 @@ function fetchData() {
  * @return {Date Object} 
  **/
 function getTime() {
+  const daysOfWeek = [
+    "Sunday", "Monday", "Tuesday",
+    "Wednesday", "Thursday",
+    "Friday", "Saturday"
+  ];
+
   const now = new Date();
-  const time = now.toLocaleTimeString();
+  const day = now.getDay();
+  const hr = now.getHours();
+  const min = now.getMinutes();
+  dayOfWeek = daysOfWeek[day];
+  time = `${hr}:${min}`;
+
   return time;
 }
 /**
@@ -29,9 +47,10 @@ async function openFoodTrucks() {
   const currentTime = getTime();
 
   let truckList = [];
-  for (let value of Object.values(foodData)) {
-    if (currentTime < value["end24"] && currentTime > value["start24"]) {
-      truckList.push(`${value["applicant"]} (${value["location"]})`);
+  for (let truckInfo of Object.values(foodData)) {
+
+    if (truckInfo["start24"] < currentTime && truckInfo["end24"] > currentTime && dayOfWeek == truckInfo["dayofweekstr"]) {
+      truckList.push(`${truckInfo["applicant"]} (${truckInfo["location"]})`);
     };
   }
   const sortedFoodList = truckList.sort();
@@ -52,7 +71,7 @@ async function showFoodTrucks() {
   const pageLimit = 10; 
   let currentPage = 1;
   
-  if (openFoodList.length == 0 || openFoodList == []) {return console.log("Nothing's open!")};
+  if (openFoodList.length == 0) {return console.log("Nothing's open!")};
   console.log('Open Food Trucks: ',openFoodList.length);
 
   for (let grouping = 0; grouping < openFoodList.length; grouping += pageLimit) {
@@ -69,7 +88,7 @@ async function showFoodTrucks() {
       if (answer == 'y') { 
         ++currentPage;
       } else if (answer == 'n') {
-        console.log("Bon appetit!")
+        console.log("Bon appetit!\n")
         break
       } else {
         console.log("Please enter 'y' or 'n'.")
