@@ -1,24 +1,24 @@
 # Food Truck Finder
 
-##What This Program Does
+## What this program does
 It's a command line program that prints out a list of food trucks that are open at the current date and time. The food trucks are in San Francisco and more information about the API can be found through [Socrata](https://dev.socrata.com/foundry/data.sfgov.org/bbb8-hzi6).
 
-##Install
+## Install
 Dependencies include node, axios, and readline. See below for installation details.
 
-####Node:
+#### Node:
 ```
 brew install node 
 ```
 or visit https://nodejs.org/en/ for more install options
 
-####Axios:
+#### Axios:
 ```npm install axios ``` or visit https://www.npmjs.com/package/axios
 
-####Readline:
+#### Readline:
 ```npm install readline-sync ``` or visit https://www.npmjs.com/package/readline-sync
 
-####You-Don't-Need-Lodash-Underscore:
+#### You-Don't-Need-Lodash-Underscore:
 ```npm install --save-dev eslint-plugin-you-dont-need-lodash-underscore```
 
 ## How to run
